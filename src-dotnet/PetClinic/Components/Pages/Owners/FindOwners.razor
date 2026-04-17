@@ -1,0 +1,27 @@
+@page "/owners/find"
+@inject OwnerService OwnerService
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<PageTitle>Find Owners</PageTitle>
+
+<h2>Find Owners</h2>
+<form @onsubmit="Search" @onsubmit:preventDefault>
+    <div class="form-group" style="margin-bottom:15px;">
+        <label for="lastName">Last Name:</label>
+        <input id="lastName" class="form-control" @bind="lastName" placeholder="Search by last name (leave blank for all)" />
+    </div>
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">Find Owner</button>
+        <a href="/owners/new" class="btn btn-default" style="margin-left:10px;">Add Owner</a>
+    </div>
+</form>
+
+@code {
+    private string lastName = "";
+
+    private void Search()
+    {
+        Nav.NavigateTo($"/owners?lastName={Uri.EscapeDataString(lastName)}&page=1");
+    }
+}

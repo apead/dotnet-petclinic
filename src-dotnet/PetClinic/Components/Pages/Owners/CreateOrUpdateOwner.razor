@@ -1,0 +1,82 @@
+@page "/owners/new"
+@page "/owners/{OwnerId:int}/edit"
+@inject OwnerService OwnerService
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<PageTitle>@(OwnerId.HasValue ? "Edit Owner" : "New Owner")</PageTitle>
+
+<h2>@(OwnerId.HasValue ? "Edit Owner" : "New Owner")</h2>
+
+@if (owner is not null)
+{
+    <EditForm Model="owner" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="text-danger" />
+
+        <div class="form-group" style="margin-bottom:10px;">
+            <label>First Name</label>
+            <InputText class="form-control" @bind-Value="owner.FirstName" />
+            <ValidationMessage For="() => owner.FirstName" class="text-danger" />
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+            <label>Last Name</label>
+            <InputText class="form-control" @bind-Value="owner.LastName" />
+            <ValidationMessage For="() => owner.LastName" class="text-danger" />
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+            <label>Address</label>
+            <InputText class="form-control" @bind-Value="owner.Address" />
+            <ValidationMessage For="() => owner.Address" class="text-danger" />
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+            <label>City</label>
+            <InputText class="form-control" @bind-Value="owner.City" />
+            <ValidationMessage For="() => owner.City" class="text-danger" />
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+            <label>Telephone</label>
+            <InputText class="form-control" @bind-Value="owner.Telephone" />
+            <ValidationMessage For="() => owner.Telephone" class="text-danger" />
+        </div>
+        <div style="margin-top:15px;">
+            <button type="submit" class="btn btn-primary">@(OwnerId.HasValue ? "Update Owner" : "Add Owner")</button>
+            <a href="@(OwnerId.HasValue ? $"/owners/{OwnerId}" : "/owners/find")" class="btn btn-default" style="margin-left:5px;">Cancel</a>
+        </div>
+    </EditForm>
+}
+
+@code {
+    [Parameter] public int? OwnerId { get; set; }
+
+    private Owner? owner;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (OwnerId.HasValue)
+            owner = await OwnerService.GetByIdAsync(OwnerId.Value);
+        else
+            owner = new Owner();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (owner is null) return;
+
+        if (OwnerId.HasValue)
+        {
+            if (owner.Id != OwnerId.Value)
+            {
+                Nav.NavigateTo("/error");
+                return;
+            }
+            await OwnerService.UpdateAsync(owner);
+            Nav.NavigateTo($"/owners/{OwnerId}?msg=Owner+Values+Updated");
+        }
+        else
+        {
+            var created = await OwnerService.CreateAsync(owner);
+            Nav.NavigateTo($"/owners/{created.Id}?msg=New+Owner+Created");
+        }
+    }
+}

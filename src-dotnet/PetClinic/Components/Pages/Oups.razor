@@ -1,0 +1,10 @@
+@page "/oups"
+@rendermode InteractiveServer
+
+@code {
+    protected override void OnInitialized()
+    {
+        throw new InvalidOperationException(
+            "Expected: controller used to showcase what happens when an exception is thrown");
+    }
+}

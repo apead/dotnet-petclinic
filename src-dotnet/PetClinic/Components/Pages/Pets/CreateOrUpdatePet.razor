@@ -1,0 +1,113 @@
+@page "/owners/{OwnerId:int}/pets/new"
+@page "/owners/{OwnerId:int}/pets/{PetId:int}/edit"
+@inject PetService PetService
+@inject OwnerService OwnerService
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<PageTitle>@(PetId.HasValue ? "Edit Pet" : "New Pet")</PageTitle>
+
+<h2>@(PetId.HasValue ? "Edit Pet" : "New Pet")</h2>
+
+@if (pet is not null)
+{
+    @if (validationError is not null)
+    {
+        <div class="alert alert-danger">@validationError</div>
+    }
+    <EditForm Model="pet" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="text-danger" />
+
+        <div class="form-group" style="margin-bottom:10px;">
+            <label>Name</label>
+            <InputText class="form-control" @bind-Value="pet.Name" />
+            <ValidationMessage For="() => pet.Name" class="text-danger" />
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+            <label>Birth Date</label>
+            <input type="date" class="form-control"
+                   value="@birthDateStr"
+                   @onchange="OnBirthDateChanged" />
+            <ValidationMessage For="() => pet.BirthDate" class="text-danger" />
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+            <label>Type</label>
+            <InputSelect class="form-control" @bind-Value="pet.TypeId">
+                <option value="0">-- Select Type --</option>
+                @foreach (var type in petTypes)
+                {
+                    <option value="@type.Id">@type.Name</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="() => pet.TypeId" class="text-danger" />
+        </div>
+        <div style="margin-top:15px;">
+            <button type="submit" class="btn btn-primary">@(PetId.HasValue ? "Update Pet" : "Add Pet")</button>
+            <a href="/owners/@OwnerId" class="btn btn-default" style="margin-left:5px;">Cancel</a>
+        </div>
+    </EditForm>
+}
+
+@code {
+    [Parameter] public int OwnerId { get; set; }
+    [Parameter] public int? PetId { get; set; }
+
+    private Pet? pet;
+    private List<PetType> petTypes = [];
+    private string birthDateStr = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        petTypes = await PetService.GetPetTypesAsync();
+        if (PetId.HasValue)
+            pet = await PetService.GetByIdAsync(PetId.Value);
+        else
+            pet = new Pet { BirthDate = DateOnly.FromDateTime(DateTime.Today) };
+
+        birthDateStr = pet?.BirthDate.ToString("yyyy-MM-dd") ?? "";
+    }
+
+    private void OnBirthDateChanged(ChangeEventArgs e)
+    {
+        if (pet is not null && DateOnly.TryParse(e.Value?.ToString(), out var d))
+        {
+            pet.BirthDate = d;
+            birthDateStr = d.ToString("yyyy-MM-dd");
+        }
+    }
+
+    private string? validationError;
+
+    private async Task HandleValidSubmit()
+    {
+        if (pet is null) return;
+        validationError = null;
+
+        // Validate birth date is not in the future
+        if (pet.BirthDate > DateOnly.FromDateTime(DateTime.Today))
+        {
+            validationError = "Birth date cannot be in the future.";
+            return;
+        }
+
+        // Validate no duplicate pet name for this owner
+        if (await PetService.IsDuplicateNameAsync(OwnerId, pet.Name, PetId))
+        {
+            validationError = $"The name \"{pet.Name}\" is already in use for this owner.";
+            return;
+        }
+
+        if (PetId.HasValue)
+        {
+            await PetService.UpdateAsync(pet);
+            Nav.NavigateTo($"/owners/{OwnerId}?msg=Pet+details+has+been+edited");
+        }
+        else
+        {
+            await PetService.CreateAsync(pet, OwnerId);
+            Nav.NavigateTo($"/owners/{OwnerId}?msg=New+Pet+has+been+Added");
+        }
+    }
+}
+

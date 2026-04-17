@@ -1,0 +1,47 @@
+@if (TotalPages > 1)
+{
+    <div>
+        <nav>
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(CurrentPage == 1 ? "disabled" : "")">
+                    <a class="page-link" @onclick="() => OnPageChange.InvokeAsync(1)" href="javascript:void(0)">
+                        <span aria-hidden="true">&laquo; First</span>
+                    </a>
+                </li>
+                <li class="page-item @(CurrentPage == 1 ? "disabled" : "")">
+                    <a class="page-link" @onclick="() => OnPageChange.InvokeAsync(CurrentPage - 1)" href="javascript:void(0)">
+                        <span aria-hidden="true">&lsaquo; Prev</span>
+                    </a>
+                </li>
+
+                @for (int i = 1; i <= TotalPages; i++)
+                {
+                    var pageNum = i;
+                    <li class="page-item @(pageNum == CurrentPage ? "active" : "")">
+                        <a class="page-link" @onclick="() => OnPageChange.InvokeAsync(pageNum)" href="javascript:void(0)">@pageNum</a>
+                    </li>
+                }
+
+                <li class="page-item @(CurrentPage == TotalPages ? "disabled" : "")">
+                    <a class="page-link" @onclick="() => OnPageChange.InvokeAsync(CurrentPage + 1)" href="javascript:void(0)">
+                        <span aria-hidden="true">Next &rsaquo;</span>
+                    </a>
+                </li>
+                <li class="page-item @(CurrentPage == TotalPages ? "disabled" : "")">
+                    <a class="page-link" @onclick="() => OnPageChange.InvokeAsync(TotalPages)" href="javascript:void(0)">
+                        <span aria-hidden="true">Last &raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <div class="text-center">
+            <em>Page @CurrentPage of @TotalPages</em>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int CurrentPage { get; set; }
+    [Parameter] public int TotalPages { get; set; }
+    [Parameter] public EventCallback<int> OnPageChange { get; set; }
+}

@@ -1,0 +1,91 @@
+@page "/owners/{OwnerId:int}/pets/{PetId:int}/visits/new"
+@inject VisitService VisitService
+@inject PetService PetService
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<PageTitle>New Visit</PageTitle>
+
+<h2>New Visit</h2>
+
+@if (pet is not null)
+{
+    <table class="table table-striped">
+        <tr><th>Pet</th><td>@pet.Name</td></tr>
+        <tr><th>Type</th><td>@pet.Type?.Name</td></tr>
+        <tr><th>Birth Date</th><td>@pet.BirthDate.ToString("yyyy-MM-dd")</td></tr>
+    </table>
+
+    <h3>Previous Visits</h3>
+    @if (pet.Visits.Count == 0)
+    {
+        <p>No previous visits.</p>
+    }
+    else
+    {
+        <table class="table table-condensed">
+            <thead><tr><th>Date</th><th>Description</th></tr></thead>
+            <tbody>
+                @foreach (var v in pet.Visits.OrderByDescending(v => v.VisitDate))
+                {
+                    <tr><td>@v.VisitDate.ToString("yyyy-MM-dd")</td><td>@v.Description</td></tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <h3>New Visit</h3>
+    <EditForm Model="visit" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="text-danger" />
+
+        <div class="form-group" style="margin-bottom:10px;">
+            <label>Visit Date</label>
+            <input type="date" class="form-control"
+                   value="@visitDateStr"
+                   @onchange="OnVisitDateChanged" />
+            <ValidationMessage For="() => visit.VisitDate" class="text-danger" />
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+            <label>Description</label>
+            <InputTextArea class="form-control" rows="3" @bind-Value="visit.Description" />
+            <ValidationMessage For="() => visit.Description" class="text-danger" />
+        </div>
+        <div style="margin-top:15px;">
+            <button type="submit" class="btn btn-primary">Add Visit</button>
+            <a href="/owners/@OwnerId" class="btn btn-default" style="margin-left:5px;">Cancel</a>
+        </div>
+    </EditForm>
+}
+
+@code {
+    [Parameter] public int OwnerId { get; set; }
+    [Parameter] public int PetId { get; set; }
+
+    private Pet? pet;
+    private Visit visit = new();
+    private string visitDateStr = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        pet = await PetService.GetByIdAsync(PetId);
+        visit = new Visit { PetId = PetId, VisitDate = DateOnly.FromDateTime(DateTime.Today) };
+        visitDateStr = visit.VisitDate.ToString("yyyy-MM-dd");
+    }
+
+    private void OnVisitDateChanged(ChangeEventArgs e)
+    {
+        if (DateOnly.TryParse(e.Value?.ToString(), out var d))
+        {
+            visit.VisitDate = d;
+            visitDateStr = d.ToString("yyyy-MM-dd");
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        await VisitService.CreateAsync(visit);
+        Nav.NavigateTo($"/owners/{OwnerId}?msg=Your+visit+has+been+booked");
+    }
+}
+

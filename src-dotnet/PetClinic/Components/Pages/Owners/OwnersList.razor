@@ -1,0 +1,78 @@
+@page "/owners"
+@inject OwnerService OwnerService
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<PageTitle>Owners</PageTitle>
+
+<h2>Owners</h2>
+
+@if (isLoading)
+{
+    <p>Loading...</p>
+}
+else if (owners.Count == 0)
+{
+    <div class="alert alert-warning">No owners found for "@(LastName ?? "")".</div>
+    <p><a href="/owners/find" class="btn btn-primary">Search Again</a></p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Address</th>
+                <th>City</th>
+                <th>Telephone</th>
+                <th>Pets</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var owner in owners)
+            {
+                <tr>
+                    <td><a href="/owners/@owner.Id">@owner.FirstName @owner.LastName</a></td>
+                    <td>@owner.Address</td>
+                    <td>@owner.City</td>
+                    <td>@owner.Telephone</td>
+                    <td>@string.Join(", ", owner.Pets.Select(p => p.Name))</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <Pagination CurrentPage="currentPage" TotalPages="totalPages" OnPageChange="ChangePage" />
+}
+
+@code {
+    [SupplyParameterFromQuery] public string? LastName { get; set; }
+    [SupplyParameterFromQuery] public int Page { get; set; } = 1;
+
+    private List<Owner> owners = [];
+    private bool isLoading = true;
+    private int currentPage = 1;
+    private int totalPages = 1;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        currentPage = Page < 1 ? 1 : Page;
+        isLoading = true;
+        var (items, total) = await OwnerService.SearchAsync(LastName ?? "", currentPage);
+
+        // Mirror Java behaviour: single result → redirect directly to owner detail
+        if (total == 1)
+        {
+            Nav.NavigateTo($"/owners/{items[0].Id}");
+            return;
+        }
+
+        owners = items;
+        totalPages = (int)Math.Ceiling(total / 5.0);
+        isLoading = false;
+    }
+
+    private void ChangePage(int page)
+    {
+        Nav.NavigateTo($"/owners?lastName={Uri.EscapeDataString(LastName ?? "")}&page={page}");
+    }
+}

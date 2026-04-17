@@ -1,0 +1,57 @@
+@page "/vets"
+@inject VetService VetService
+@rendermode InteractiveServer
+
+<PageTitle>Veterinarians</PageTitle>
+
+<h2>Veterinarians</h2>
+
+@if (isLoading)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Specialties</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var vet in vets)
+            {
+                <tr>
+                    <td>@vet.FirstName @vet.LastName</td>
+                    <td>@vet.SpecialtiesDisplay</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <Pagination CurrentPage="currentPage" TotalPages="totalPages" OnPageChange="ChangePage" />
+}
+
+@code {
+    private List<Vet> vets = [];
+    private bool isLoading = true;
+    private int currentPage = 1;
+    private int totalPages = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPage(1);
+    }
+
+    private async Task LoadPage(int page)
+    {
+        isLoading = true;
+        currentPage = page;
+        var (items, total) = await VetService.GetPagedAsync(page);
+        vets = items;
+        totalPages = (int)Math.Ceiling(total / 5.0);
+        isLoading = false;
+    }
+
+    private async Task ChangePage(int page) => await LoadPage(page);
+}

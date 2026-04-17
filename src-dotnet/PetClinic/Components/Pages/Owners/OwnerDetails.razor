@@ -1,0 +1,102 @@
+@page "/owners/{OwnerId:int}"
+@inject OwnerService OwnerService
+@rendermode InteractiveServer
+
+<PageTitle>Owner Information</PageTitle>
+
+@if (Message is not null)
+{
+    <div class="alert alert-success alert-dismissible" role="alert">
+        @Uri.UnescapeDataString(Message)
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (owner is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <h2>Owner Information</h2>
+    <table class="table table-striped">
+        <tr>
+            <th>Name</th>
+            <td><b>@owner.FirstName @owner.LastName</b></td>
+        </tr>
+        <tr>
+            <th>Address</th>
+            <td>@owner.Address</td>
+        </tr>
+        <tr>
+            <th>City</th>
+            <td>@owner.City</td>
+        </tr>
+        <tr>
+            <th>Telephone</th>
+            <td>@owner.Telephone</td>
+        </tr>
+    </table>
+    <a href="/owners/@owner.Id/edit" class="btn btn-primary">Edit Owner</a>
+    <a href="/owners/find" class="btn btn-default" style="margin-left:5px;">Back</a>
+
+    <br /><br />
+
+    <h3>Pets and Visits</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Birth Date</th>
+                <th>Type</th>
+                <th>Visits</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var pet in owner.Pets.OrderBy(p => p.Name))
+            {
+                <tr>
+                    <td><b>@pet.Name</b></td>
+                    <td>@pet.BirthDate.ToString("yyyy-MM-dd")</td>
+                    <td>@pet.Type?.Name</td>
+                    <td>
+                        <table class="table-condensed">
+                            <thead>
+                                <tr>
+                                    <th>Visit Date</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var visit in pet.Visits.OrderBy(v => v.VisitDate))
+                                {
+                                    <tr>
+                                        <td>@visit.VisitDate.ToString("yyyy-MM-dd")</td>
+                                        <td>@visit.Description</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </td>
+                    <td>
+                        <a href="/owners/@owner.Id/pets/@pet.Id/edit" class="btn btn-secondary btn-sm">Edit Pet</a>
+                        <a href="/owners/@owner.Id/pets/@pet.Id/visits/new" class="btn btn-success btn-sm" style="margin-top:3px;">Add Visit</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <a href="/owners/@owner.Id/pets/new" class="btn btn-success">Add New Pet</a>
+}
+
+@code {
+    [Parameter] public int OwnerId { get; set; }
+    [SupplyParameterFromQuery(Name = "msg")] public string? Message { get; set; }
+    private Owner? owner;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        owner = await OwnerService.GetByIdAsync(OwnerId);
+    }
+}
