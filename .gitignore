@@ -273,6 +273,11 @@ pip-log.txt
 ###################
 Artifacts/
 
+# SQLite database files
+*.db
+*.db-shm
+*.db-wal
+
 # NuGet Packages
 *.nupkg
 # The packages folder can be ignored because of Package Restore
