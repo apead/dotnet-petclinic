@@ -9,6 +9,16 @@ public static class DbInitializer
     {
         context.Database.EnsureCreated();
 
+        // Ensure new VetId column exists in visits table for existing databases
+        try
+        {
+            context.Database.ExecuteSqlRaw("ALTER TABLE visits ADD COLUMN VetId INTEGER NULL");
+        }
+        catch (Microsoft.Data.Sqlite.SqliteException)
+        {
+            // Column already exists — safe to ignore
+        }
+
         if (context.Vets.Any()) return;
 
         var radiology = new Specialty { Name = "radiology" };

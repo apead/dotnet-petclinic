@@ -66,6 +66,7 @@ else
                                 <tr>
                                     <th>Visit Date</th>
                                     <th>Description</th>
+                                    <th>Vet</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -74,6 +75,7 @@ else
                                     <tr>
                                         <td>@visit.VisitDate.ToString("yyyy-MM-dd")</td>
                                         <td>@visit.Description</td>
+                                        <td>@(visit.Vet is not null ? $"{visit.Vet.FirstName} {visit.Vet.LastName}" : "—")</td>
                                     </tr>
                                 }
                             </tbody>
