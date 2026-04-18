@@ -1,6 +1,7 @@
 @page "/owners/{OwnerId:int}/pets/{PetId:int}/visits/new"
 @inject VisitService VisitService
 @inject PetService PetService
+@inject VetService VetService
 @inject NavigationManager Nav
 @rendermode InteractiveServer
 
@@ -24,11 +25,15 @@
     else
     {
         <table class="table table-condensed">
-            <thead><tr><th>Date</th><th>Description</th></tr></thead>
+            <thead><tr><th>Date</th><th>Vet</th><th>Description</th></tr></thead>
             <tbody>
                 @foreach (var v in pet.Visits.OrderByDescending(v => v.VisitDate))
                 {
-                    <tr><td>@v.VisitDate.ToString("yyyy-MM-dd")</td><td>@v.Description</td></tr>
+                    <tr>
+                        <td>@v.VisitDate.ToString("yyyy-MM-dd")</td>
+                        <td>@(v.Vet is not null ? $"{v.Vet.FirstName} {v.Vet.LastName}" : "-")</td>
+                        <td>@v.Description</td>
+                    </tr>
                 }
             </tbody>
         </table>
@@ -45,6 +50,16 @@
                    value="@visitDateStr"
                    @onchange="OnVisitDateChanged" />
             <ValidationMessage For="() => visit.VisitDate" class="text-danger" />
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+            <label>Vet</label>
+            <InputSelect class="form-control" @bind-Value="vetIdStr">
+                <option value="">-- Select a vet (optional) --</option>
+                @foreach (var vet in vets)
+                {
+                    <option value="@vet.Id">@vet.FirstName @vet.LastName</option>
+                }
+            </InputSelect>
         </div>
         <div class="form-group" style="margin-bottom:10px;">
             <label>Description</label>
@@ -65,12 +80,16 @@
     private Pet? pet;
     private Visit visit = new();
     private string visitDateStr = "";
+    private string vetIdStr = "";
+    private List<Vet> vets = new();
 
     protected override async Task OnParametersSetAsync()
     {
         pet = await PetService.GetByIdAsync(PetId);
         visit = new Visit { PetId = PetId, VisitDate = DateOnly.FromDateTime(DateTime.Today) };
         visitDateStr = visit.VisitDate.ToString("yyyy-MM-dd");
+        vetIdStr = "";
+        vets = await VetService.GetAllAsync();
     }
 
     private void OnVisitDateChanged(ChangeEventArgs e)
@@ -84,6 +103,7 @@
 
     private async Task HandleValidSubmit()
     {
+        visit.VetId = int.TryParse(vetIdStr, out var vid) ? vid : (int?)null;
         await VisitService.CreateAsync(visit);
         Nav.NavigateTo($"/owners/{OwnerId}?msg=Your+visit+has+been+booked");
     }

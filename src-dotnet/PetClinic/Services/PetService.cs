@@ -10,7 +10,7 @@ public class PetService(PetClinicContext db)
         await db.PetTypes.OrderBy(t => t.Name).ToListAsync();
 
     public async Task<Pet?> GetByIdAsync(int id) =>
-        await db.Pets.Include(p => p.Type).Include(p => p.Visits).FirstOrDefaultAsync(p => p.Id == id);
+        await db.Pets.Include(p => p.Type).Include(p => p.Visits).ThenInclude(v => v.Vet).FirstOrDefaultAsync(p => p.Id == id);
 
     public async Task<bool> IsDuplicateNameAsync(int ownerId, string name, int? excludePetId = null) =>
         await db.Pets.AnyAsync(p =>
