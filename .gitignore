@@ -48,6 +48,10 @@ _site/
 !petclinic.css
 !src-dotnet/**/*.css
 
+### dotnet wwwroot vendor libs (override dist/ and *.css rules above) ###
+!src-dotnet/**/wwwroot/lib/**/
+!src-dotnet/**/wwwroot/lib/**
+
 
 #################
 ## Eclipse
@@ -280,3 +284,8 @@ Artifacts/
 **/packages/*
 # except build/, which is used as an MSBuild target.
 !**/packages/build/
+
+### dotnet PetClinic — vendor libs & custom CSS (overrides dist/ and *.css rules above) ###
+!src-dotnet/**/wwwroot/lib/**/
+!src-dotnet/**/wwwroot/lib/**
+!src-dotnet/**/*.css
