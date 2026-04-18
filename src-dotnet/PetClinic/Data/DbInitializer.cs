@@ -7,6 +7,9 @@ public static class DbInitializer
 {
     public static void Initialize(PetClinicContext context)
     {
+        // No EF migrations are used in this demo app. Deleting the database ensures
+        // the schema is always up-to-date when the model changes.
+        context.Database.EnsureDeleted();
         context.Database.EnsureCreated();
 
         if (context.Vets.Any()) return;

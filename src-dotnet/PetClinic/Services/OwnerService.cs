@@ -10,7 +10,7 @@ public class OwnerService(PetClinicContext db)
     {
         var q = db.Owners
             .Include(o => o.Pets).ThenInclude(p => p.Type)
-            .Include(o => o.Pets).ThenInclude(p => p.Visits)
+            .Include(o => o.Pets).ThenInclude(p => p.Visits).ThenInclude(v => v.Vet)
             .Where(o => o.LastName.StartsWith(lastName))
             .OrderBy(o => o.LastName);
         var total = await q.CountAsync();
@@ -21,7 +21,7 @@ public class OwnerService(PetClinicContext db)
     public async Task<Owner?> GetByIdAsync(int id) =>
         await db.Owners
             .Include(o => o.Pets).ThenInclude(p => p.Type)
-            .Include(o => o.Pets).ThenInclude(p => p.Visits)
+            .Include(o => o.Pets).ThenInclude(p => p.Visits).ThenInclude(v => v.Vet)
             .FirstOrDefaultAsync(o => o.Id == id);
 
     public async Task<Owner> CreateAsync(Owner owner)

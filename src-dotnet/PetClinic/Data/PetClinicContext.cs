@@ -38,7 +38,15 @@ public class PetClinicContext(DbContextOptions<PetClinicContext> options) : DbCo
         });
 
         modelBuilder.Entity<PetType>(b => b.ToTable("types"));
-        modelBuilder.Entity<Visit>(b => b.ToTable("visits"));
+        modelBuilder.Entity<Visit>(b =>
+        {
+            b.ToTable("visits");
+            b.HasOne(v => v.Vet)
+             .WithMany()
+             .HasForeignKey(v => v.VetId)
+             .IsRequired(false)
+             .OnDelete(DeleteBehavior.SetNull);
+        });
         modelBuilder.Entity<Specialty>(b => b.ToTable("specialties"));
 
         modelBuilder.Entity<Vet>(b =>

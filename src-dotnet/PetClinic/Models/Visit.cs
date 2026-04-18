@@ -11,4 +11,7 @@ public class Visit : BaseEntity
     public string Description { get; set; } = string.Empty;
 
     public int PetId { get; set; }
+
+    public int? VetId { get; set; }
+    public Vet? Vet { get; set; }
 }
