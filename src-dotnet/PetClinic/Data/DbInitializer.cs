@@ -14,7 +14,7 @@ public static class DbInitializer
         {
             context.Database.ExecuteSqlRaw("ALTER TABLE visits ADD COLUMN VetId INTEGER NULL");
         }
-        catch (Microsoft.Data.Sqlite.SqliteException)
+        catch (Microsoft.Data.Sqlite.SqliteException ex) when (ex.SqliteErrorCode == 1 && ex.Message.Contains("duplicate column name"))
         {
             // Column already exists — safe to ignore
         }

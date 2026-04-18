@@ -62,7 +62,7 @@
                 <option value="">-- Select a vet (optional) --</option>
                 @foreach (var vet in vets)
                 {
-                    <option value="@vet.Id" selected="@(visit.VetId == vet.Id)">@vet.FirstName @vet.LastName@(vet.Specialties.Count > 0 ? $" ({vet.SpecialtiesDisplay})" : "")</option>
+                    <option value="@vet.Id" selected="@(visit.VetId == vet.Id)">@VetDisplayName(vet)</option>
                 }
             </select>
         </div>
@@ -101,8 +101,13 @@
 
     private void OnVetChanged(ChangeEventArgs e)
     {
-        visit.VetId = int.TryParse(e.Value?.ToString(), out var id) ? id : null;
+        visit.VetId = int.TryParse(e.Value?.ToString(), out var id) && id > 0 ? id : null;
     }
+
+    private static string VetDisplayName(Vet vet) =>
+        vet.Specialties.Count > 0
+            ? $"{vet.FirstName} {vet.LastName} ({vet.SpecialtiesDisplay})"
+            : $"{vet.FirstName} {vet.LastName}";
 
     private async Task HandleValidSubmit()
     {
